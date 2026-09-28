@@ -39,12 +39,6 @@ class BudgetPage extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'budget-add',
-        onPressed: () => _edit(context, ref, categories: categories, existing: budgets.value ?? const []),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Definir limite'),
-      ),
       body: AsyncView<List<BudgetStatus>>(
         value: budgets,
         onRetry: () => ref.invalidate(budgetStatusProvider),

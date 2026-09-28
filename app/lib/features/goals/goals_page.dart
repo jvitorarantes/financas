@@ -76,12 +76,17 @@ class GoalsPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final goals = ref.watch(goalsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Metas')),
-      floatingActionButton: FloatingActionButton.extended(
-        heroTag: 'goal-add',
-        onPressed: () => _editGoal(context, ref),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Nova meta'),
+      appBar: AppBar(
+        title: const Text('Metas'),
+        actions: [
+          TextButton.icon(
+            key: const Key('goal-add'),
+            onPressed: () => _editGoal(context, ref),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Nova meta'),
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: AsyncView<List<FinancialGoal>>(
         value: goals,
