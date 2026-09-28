@@ -3,7 +3,8 @@ name: Publicar site (GitHub Pages)
 # Publica o app web em https://<usuario>.github.io/financas/ a cada push na main.
 # Antes, em Settings do repositório:
 #   1. Pages → Source: "GitHub Actions"
-#   2. Secrets and variables → Actions → Variables: SUPABASE_URL e SUPABASE_ANON_KEY
+#   2. (opcional) Variables SUPABASE_URL e SUPABASE_ANON_KEY para usar outro
+#      projeto; sem elas, vale o padrão de app/lib/app/env.dart.
 on:
   push:
     branches: [main]
@@ -21,7 +22,6 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: vars.SUPABASE_URL != '' && vars.SUPABASE_ANON_KEY != ''
     defaults:
       run:
         working-directory: app
@@ -37,8 +37,8 @@ jobs:
         run: >
           flutter build web --release
           --base-href "/${{ github.event.repository.name }}/"
-          --dart-define=SUPABASE_URL=${{ vars.SUPABASE_URL }}
-          --dart-define=SUPABASE_ANON_KEY=${{ vars.SUPABASE_ANON_KEY }}
+          ${{ vars.SUPABASE_URL && format('--dart-define=SUPABASE_URL={0}', vars.SUPABASE_URL) || '' }}
+          ${{ vars.SUPABASE_ANON_KEY && format('--dart-define=SUPABASE_ANON_KEY={0}', vars.SUPABASE_ANON_KEY) || '' }}
           --dart-define=AUTH_REDIRECT_URL=https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
       - uses: actions/upload-pages-artifact@v3
         with:

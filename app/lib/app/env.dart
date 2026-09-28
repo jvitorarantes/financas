@@ -4,8 +4,15 @@
 /// A chave "anon" é pública por definição (o RLS protege os dados).
 /// Chaves de IA NUNCA ficam no app: só nas Edge Functions.
 abstract final class Env {
-  static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-  static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+  // Padrões do projeto em produção (dados públicos: o RLS protege os dados).
+  static const supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: 'https://svygqsovhkffabgwrdds.supabase.co',
+  );
+  static const supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: 'sb_publishable_ul-JN9LHBX50qjcCF7CEJQ_db6ryALS',
+  );
   static const authRedirectUrl = String.fromEnvironment(
     'AUTH_REDIRECT_URL',
     defaultValue: 'br.com.meufinanceiro://login-callback',
