@@ -102,6 +102,18 @@ Tabelas: `users`, `accounts`, `transactions`, `categories`, `budgets`,
 - Há também as funções `dashboard_summary`, `spending_by_category`,
   `budget_status` e `monthly_category_totals`.
 
+## Uso pessoal 100% gratuito
+
+| Parte | Serviço gratuito |
+|---|---|
+| Banco, login e backend | Supabase, plano Free (o projeto pausa após 7 dias sem uso; é só reativar no painel) |
+| Site / app no celular | GitHub Pages (`.github/workflows/deploy-web.yml`) + "Adicionar à tela inicial" no celular |
+| Transcrição do áudio | Groq, plano gratuito (`GROQ_API_KEY`) |
+| Interpretação e análises | Interpretador por regras em português, embutido (sem chave). O Claude é opcional e pago. |
+
+Depois de criar as contas de uso, desligue novos cadastros em
+**Authentication → Sign In / Providers → Allow new users to sign up**.
+
 ## Como rodar
 
 ### 1. Supabase
@@ -110,7 +122,7 @@ Tabelas: `users`, `accounts`, `transactions`, `categories`, `budgets`,
 # com o Supabase CLI instalado e logado
 supabase link --project-ref SEU_PROJETO
 supabase db push                         # aplica supabase/migrations
-cp supabase/functions/.env.example supabase/functions/.env   # preencha as chaves
+cp supabase/functions/.env.example supabase/functions/.env   # preencha GROQ_API_KEY
 supabase secrets set --env-file supabase/functions/.env
 supabase functions deploy transcribe-audio
 supabase functions deploy extract-transaction
