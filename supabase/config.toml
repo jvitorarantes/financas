@@ -15,9 +15,12 @@ enable_confirmations = true
 # As funções exigem usuário logado (JWT verificado pelo gateway + dentro da função).
 [functions.transcribe-audio]
 verify_jwt = true
+import_map = "./functions/deno.json"
 
 [functions.extract-transaction]
 verify_jwt = true
+import_map = "./functions/deno.json"
 
 [functions.financial-insights]
 verify_jwt = true
+import_map = "./functions/deno.json"
