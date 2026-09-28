@@ -81,7 +81,9 @@ void main() {
       await tester.enterText(find.byKey(const Key('signup-email')), 'ana@teste.com');
       await tester.enterText(find.byType(TextFormField).at(2), 'senha-forte-1');
       await tester.enterText(find.byType(TextFormField).at(3), 'senha-forte-2');
-      await tester.tap(find.byKey(const Key('signup-submit')));
+      final submit = find.byKey(const Key('signup-submit'));
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
       await tester.pump();
       expect(find.text('As senhas não conferem.'), findsOneWidget);
       expect(auth.calls, isEmpty);
@@ -90,7 +92,9 @@ void main() {
     testWidgets('senha curta é recusada', (tester) async {
       await pumpAuth(tester, '/signup');
       await tester.enterText(find.byType(TextFormField).at(2), '123');
-      await tester.tap(find.byKey(const Key('signup-submit')));
+      final submit = find.byKey(const Key('signup-submit'));
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
       await tester.pump();
       expect(find.text('A senha deve ter pelo menos 8 caracteres.'), findsOneWidget);
     });
@@ -101,11 +105,38 @@ void main() {
       await tester.enterText(find.byKey(const Key('signup-email')), 'ana@teste.com');
       await tester.enterText(find.byType(TextFormField).at(2), 'senha-forte-1');
       await tester.enterText(find.byType(TextFormField).at(3), 'senha-forte-1');
-      await tester.tap(find.byKey(const Key('signup-submit')));
+      final submit = find.byKey(const Key('signup-submit'));
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
       await tester.pumpAndSettle();
       expect(auth.calls, ['signUp:Ana Souza:ana@teste.com']);
       expect(find.text('Confirme seu e-mail'), findsOneWidget);
     });
+  });
+
+  testWidgets('cadastro fechado mostra mensagem amigável', (tester) async {
+    auth.signUpError = const AppFailure('O cadastro está fechado. Peça um acesso a quem administra o app.');
+    await pumpAuth(tester, '/signup');
+    await tester.enterText(find.byKey(const Key('signup-name')), 'Ana');
+    await tester.enterText(find.byKey(const Key('signup-email')), 'ana@teste.com');
+    await tester.enterText(find.byType(TextFormField).at(2), 'senha-forte-1');
+    await tester.enterText(find.byType(TextFormField).at(3), 'senha-forte-1');
+    final submit = find.byKey(const Key('signup-submit'));
+    await tester.ensureVisible(submit);
+    await tester.tap(submit);
+    await tester.pumpAndSettle();
+    expect(find.text('O cadastro está fechado. Peça um acesso a quem administra o app.'), findsOneWidget);
+  });
+
+  testWidgets('login só oferece "Criar conta" no primeiro acesso', (tester) async {
+    await pumpAuth(tester, '/login');
+    expect(find.text('Criar conta de administrador'), findsNothing);
+  });
+
+  testWidgets('primeiro acesso oferece criar a conta de administrador', (tester) async {
+    auth.setup = true;
+    await pumpAuth(tester, '/login');
+    expect(find.text('Criar conta de administrador'), findsOneWidget);
   });
 
   testWidgets('recuperação de senha envia o link', (tester) async {

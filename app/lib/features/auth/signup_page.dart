@@ -60,7 +60,8 @@ class _SignupPageState extends ConsumerState<SignupPage> {
     }
     return AuthScaffold(
       title: 'Criar conta',
-      subtitle: 'Comece a organizar suas finanças em poucos segundos.',
+      subtitle:
+          'No primeiro acesso, esta será a conta de administrador. Com ela você cria o acesso das outras pessoas.',
       child: Form(
         key: _form,
         child: AutofillGroup(

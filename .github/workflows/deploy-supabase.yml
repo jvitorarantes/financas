@@ -49,6 +49,6 @@ jobs:
           [ -n "$ANTHROPIC_API_KEY" ] && args+=("ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY")
           if [ ${#args[@]} -gt 0 ]; then supabase secrets set --project-ref "$PROJECT_REF" "${args[@]}"; fi
       - run: |
-          for fn in transcribe-audio extract-transaction financial-insights; do
+          for fn in transcribe-audio extract-transaction financial-insights admin-users; do
             supabase functions deploy "$fn" --project-ref "$PROJECT_REF" --use-api
           done

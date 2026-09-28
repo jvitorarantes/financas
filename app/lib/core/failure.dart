@@ -72,6 +72,10 @@ AppFailure toFailure(Object error, {AppFailure fallback = AppFailure.generic}) {
     final details = error.details;
     if (details is Map && details['error'] is Map) {
       final code = (details['error'] as Map)['code']?.toString();
+      // Mensagens da administração já vêm prontas para o usuário.
+      if (code == 'admin_error') {
+        return AppFailure((details['error'] as Map)['message']?.toString() ?? fallback.message, code: code);
+      }
       final message = _functionMessages[code];
       if (message != null) return AppFailure(message, code: code);
     }
@@ -114,6 +118,9 @@ AppFailure _authFailure(AuthException e) {
       'O cadastro está fechado. Peça um acesso a quem administra o app.',
       code: 'signup_disabled',
     );
+  }
+  if (m.contains('database error saving new user')) {
+    return const AppFailure('Não foi possível criar a conta. Fale com quem administra o app.', code: 'signup_rejected');
   }
   if (code == 'user_already_exists' || m.contains('already registered')) {
     return const AppFailure('Já existe uma conta com esse e-mail.', code: 'user_already_exists');

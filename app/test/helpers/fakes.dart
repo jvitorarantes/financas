@@ -37,6 +37,11 @@ class FakeAuthRepository implements AuthRepository {
   bool signedIn = false;
   Object? signInError;
   bool signUpNeedsConfirmation = true;
+  Object? signUpError;
+  bool setup = false;
+
+  @override
+  Future<bool> needsSetup() async => setup;
   final calls = <String>[];
 
   @override
@@ -57,6 +62,7 @@ class FakeAuthRepository implements AuthRepository {
   @override
   Future<bool> signUp({required String name, required String email, required String password}) async {
     calls.add('signUp:$name:$email');
+    if (signUpError != null) throw signUpError!;
     return signUpNeedsConfirmation;
   }
 
@@ -86,6 +92,9 @@ class FakeCatalogRepository implements CatalogRepository {
   Future<void> archiveCategory(String id, {bool archived = true}) async {}
   @override
   Future<String?> profileName() async => 'Ana';
+  bool admin = false;
+  @override
+  Future<bool> isAdmin() async => admin;
   @override
   Future<void> saveAccount({
     String? id,

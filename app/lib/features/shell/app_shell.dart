@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/theme.dart';
+import '../../data/repositories/catalog_repository.dart';
 import '../audio/audio_record_sheet.dart';
 import '../auth/auth_widgets.dart';
 
@@ -13,7 +15,14 @@ class _Destination {
   final IconData selectedIcon;
 }
 
-const _destinations = [
+const _adminDestination = _Destination(
+  '/admin',
+  'Administração',
+  Icons.admin_panel_settings_outlined,
+  Icons.admin_panel_settings_rounded,
+);
+
+const _baseDestinations = [
   _Destination('/', 'Dashboard', Icons.space_dashboard_outlined, Icons.space_dashboard_rounded),
   _Destination('/transactions', 'Movimentações', Icons.receipt_long_outlined, Icons.receipt_long_rounded),
   _Destination('/budget', 'Orçamento', Icons.donut_large_outlined, Icons.donut_large_rounded),
@@ -27,7 +36,7 @@ const _destinations = [
 const _mobileMain = ['/', '/transactions', '/budget'];
 
 /// Menu lateral no desktop/tablet, barra inferior + botão "+" no celular.
-class AppShell extends StatelessWidget {
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.child, required this.location});
   final Widget child;
   final String location;
@@ -35,19 +44,21 @@ class AppShell extends StatelessWidget {
   static const desktopBreakpoint = 1000.0;
   static const tabletBreakpoint = 640.0;
 
-  int get _index {
-    final i = _destinations.indexWhere((d) => d.path == location);
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    // "Administração" só aparece para a conta administradora.
+    final destinations = [..._baseDestinations, if (ref.watch(isAdminProvider).value == true) _adminDestination];
+    final width = MediaQuery.sizeOf(context).width;
+    if (width >= tabletBreakpoint) return _wide(context, destinations, extended: width >= desktopBreakpoint);
+    return _mobile(context, destinations);
+  }
+
+  int _indexIn(List<_Destination> destinations) {
+    final i = destinations.indexWhere((d) => d.path == location);
     return i < 0 ? 0 : i;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width;
-    if (width >= tabletBreakpoint) return _wide(context, extended: width >= desktopBreakpoint);
-    return _mobile(context);
-  }
-
-  Widget _wide(BuildContext context, {required bool extended}) {
+  Widget _wide(BuildContext context, List<_Destination> destinations, {required bool extended}) {
     final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       body: Row(
@@ -111,11 +122,11 @@ class AppShell extends StatelessWidget {
                     child: NavigationRail(
                       extended: extended,
                       backgroundColor: Colors.transparent,
-                      selectedIndex: _index,
+                      selectedIndex: _indexIn(destinations),
                       labelType: extended ? NavigationRailLabelType.none : NavigationRailLabelType.all,
-                      onDestinationSelected: (i) => context.go(_destinations[i].path),
+                      onDestinationSelected: (i) => context.go(destinations[i].path),
                       destinations: [
-                        for (final d in _destinations)
+                        for (final d in destinations)
                           NavigationRailDestination(
                             icon: Icon(d.icon),
                             selectedIcon: Icon(d.selectedIcon),
@@ -134,7 +145,7 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  Widget _mobile(BuildContext context) {
+  Widget _mobile(BuildContext context, List<_Destination> destinations) {
     final mainIndex = _mobileMain.indexOf(location);
     return Scaffold(
       body: child,
@@ -153,13 +164,13 @@ class AppShell extends StatelessWidget {
           if (i < _mobileMain.length) {
             context.go(_mobileMain[i]);
           } else {
-            _showMore(context);
+            _showMore(context, destinations);
           }
         },
         destinations: [
           for (final path in _mobileMain)
             () {
-              final d = _destinations.firstWhere((d) => d.path == path);
+              final d = destinations.firstWhere((d) => d.path == path);
               return NavigationDestination(
                 icon: Icon(d.icon),
                 selectedIcon: Icon(d.selectedIcon),
@@ -172,7 +183,7 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  void _showMore(BuildContext context) {
+  void _showMore(BuildContext context, List<_Destination> destinations) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -180,7 +191,7 @@ class AppShell extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final d in _destinations.where((d) => !_mobileMain.contains(d.path)))
+            for (final d in destinations.where((d) => !_mobileMain.contains(d.path)))
               ListTile(
                 leading: Icon(d.icon),
                 title: Text(d.label),

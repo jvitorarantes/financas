@@ -87,14 +87,26 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     : const Text('Entrar'),
               ),
               const SizedBox(height: 16),
-              Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  const Text('Ainda não tem conta?'),
-                  TextButton(onPressed: () => context.go('/signup'), child: const Text('Criar conta')),
-                ],
-              ),
+              // O cadastro público só existe no primeiro acesso (conta do
+              // administrador). Depois, as contas são criadas pelo admin.
+              if (ref.watch(needsSetupProvider).value == true)
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    const Text('Primeiro acesso?'),
+                    TextButton(
+                      onPressed: () => context.go('/signup'),
+                      child: const Text('Criar conta de administrador'),
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  'Não tem acesso? Peça a quem administra o app.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
             ],
           ),
         ),

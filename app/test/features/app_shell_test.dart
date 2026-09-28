@@ -69,6 +69,11 @@ void main() {
     expect(find.byKey(const Key('sidebar-record')), findsOneWidget);
   });
 
+  testWidgets('menu "Administração" só aparece para o admin', (tester) async {
+    await pumpShell(tester, const Size(1400, 900));
+    expect(find.text('Administração'), findsNothing);
+  });
+
   testWidgets('dashboard mostra saldo atual, projetado e totais do mês', (tester) async {
     final finance = FakeFinanceRepository()
       ..summaryValue = DashboardSummary(

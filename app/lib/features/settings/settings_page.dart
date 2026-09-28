@@ -141,6 +141,12 @@ class SettingsPage extends ConsumerWidget {
                         ),
                       ),
                       ListTile(
+                        key: const Key('change-password'),
+                        leading: const Icon(Icons.password_rounded),
+                        title: const Text('Alterar senha'),
+                        onTap: () => _changePassword(context, ref),
+                      ),
+                      ListTile(
                         key: const Key('logout'),
                         leading: Icon(Icons.logout_rounded, color: Theme.of(context).colorScheme.error),
                         title: Text('Sair', style: TextStyle(color: Theme.of(context).colorScheme.error)),
@@ -168,6 +174,58 @@ class SettingsPage extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  Future<void> _changePassword(BuildContext context, WidgetRef ref) async {
+    final password = TextEditingController();
+    final confirm = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (c) => AlertDialog(
+        title: const Text('Alterar senha'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: password,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Nova senha'),
+                validator: (v) => (v ?? '').length < 8 ? 'A senha deve ter pelo menos 8 caracteres.' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: confirm,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Confirmar nova senha'),
+                validator: (v) => v != password.text ? 'As senhas não conferem.' : null,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Cancelar')),
+          FilledButton(
+            onPressed: () {
+              if (formKey.currentState!.validate()) Navigator.pop(c, true);
+            },
+            child: const Text('Salvar'),
+          ),
+        ],
+      ),
+    );
+    final newPassword = password.text;
+    password.dispose();
+    confirm.dispose();
+    if (ok != true) return;
+    try {
+      await ref.read(authRepositoryProvider).updatePassword(newPassword);
+      if (context.mounted) showMessage(context, 'Senha alterada.');
+    } catch (e) {
+      if (context.mounted) showFailure(context, e);
+    }
   }
 
   Future<String?> _askText(BuildContext context, {required String title, String initial = ''}) async {

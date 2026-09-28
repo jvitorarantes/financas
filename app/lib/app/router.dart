@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart' show AuthChangeEvent;
 import '../data/repositories/auth_repository.dart';
 import '../domain/models/enums.dart';
 import '../domain/models/transaction.dart';
+import '../features/admin/admin_page.dart';
 import '../features/audio/audio_review_page.dart';
 import '../features/auth/login_page.dart';
 import '../features/auth/password_pages.dart';
@@ -107,6 +108,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/goals',
             pageBuilder: (_, _) => const NoTransitionPage(child: GoalsPage()),
+          ),
+          GoRoute(
+            path: '/admin',
+            pageBuilder: (_, _) => const NoTransitionPage(child: AdminPage()),
           ),
           GoRoute(
             path: '/settings',

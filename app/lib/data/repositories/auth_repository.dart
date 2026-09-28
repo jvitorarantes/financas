@@ -13,6 +13,9 @@ abstract interface class AuthRepository {
 
   /// Retorna true quando é preciso confirmar o e-mail antes de entrar.
   Future<bool> signUp({required String name, required String email, required String password});
+
+  /// true enquanto não existe nenhuma conta (primeiro acesso = administrador).
+  Future<bool> needsSetup();
   Future<void> signOut();
   Future<void> sendPasswordReset(String email);
   Future<void> updatePassword(String newPassword);
@@ -56,6 +59,15 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<bool> needsSetup() async {
+    try {
+      return await _client.rpc('needs_setup') == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
@@ -84,3 +96,5 @@ class SupabaseAuthRepository implements AuthRepository {
 }
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) => SupabaseAuthRepository(ref.watch(supabaseProvider)));
+
+final needsSetupProvider = FutureProvider<bool>((ref) => ref.watch(authRepositoryProvider).needsSetup());

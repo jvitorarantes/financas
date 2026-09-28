@@ -28,6 +28,7 @@ abstract interface class CatalogRepository {
   });
   Future<void> archiveCategory(String id, {bool archived = true});
   Future<String?> profileName();
+  Future<bool> isAdmin();
   Future<void> updateProfileName(String name);
 }
 
@@ -109,6 +110,16 @@ class SupabaseCatalogRepository implements CatalogRepository {
   });
 
   @override
+  Future<bool> isAdmin() async {
+    try {
+      final row = await _db.from('users').select('is_admin').maybeSingle();
+      return row?['is_admin'] == true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
   Future<void> updateProfileName(String name) =>
       _guard(() => _db.from('users').update({'full_name': name.trim()}).eq('id', _uid));
 }
@@ -116,3 +127,5 @@ class SupabaseCatalogRepository implements CatalogRepository {
 final catalogRepositoryProvider = Provider<CatalogRepository>(
   (ref) => SupabaseCatalogRepository(ref.watch(supabaseProvider)),
 );
+
+final isAdminProvider = FutureProvider<bool>((ref) => ref.watch(catalogRepositoryProvider).isAdmin());

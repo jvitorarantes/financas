@@ -111,16 +111,18 @@ Tabelas: `users`, `accounts`, `transactions`, `categories`, `budgets`,
 | Transcrição do áudio | Groq, plano gratuito (`GROQ_API_KEY`) |
 | Interpretação e análises | Interpretador por regras em português, embutido (sem chave). O Claude é opcional e pago. |
 
-**Usuários (até ~20, finanças separadas):** cada conta vê só os próprios dados.
-O e-mail padrão do Supabase só envia para membros da equipe do projeto, então:
+**Usuários (até 20, finanças separadas):** cada conta vê só os próprios dados.
 
-- **Criar os acessos sem e-mail:** desligue *Allow new users to sign up*
-  (Authentication → Sign In / Providers) e crie cada pessoa em
-  *Authentication → Users → Add user → Create new user*, marcando
-  *Auto Confirm User*. Cada um entra com o e-mail e a senha que você definir.
-- **Recuperação de senha por e-mail (opcional):** configure um SMTP gratuito
-  (ex.: Brevo, 300 e-mails/dia) em *Project Settings → Authentication → SMTP Settings*.
-  Sem isso, a senha é redefinida por você em *Authentication → Users*.
+1. A **primeira conta** criada no app (tela de login → "Criar conta de
+   administrador") vira a **administradora**.
+2. Em seguida, desligue o cadastro público no Supabase:
+   *Authentication → Sign In / Providers → Allow new users to sign up*.
+3. Na página **Administração** do app, o administrador cria o e-mail e a senha
+   de cada pessoa, redefine senhas e exclui contas. Cada pessoa troca a
+   própria senha em *Configurações → Alterar senha*.
+
+O limite de contas fica no banco (padrão 20). Para mudar, rode no SQL Editor:
+`update private.app_config set max_users = 30;`
 
 ## Como rodar
 
