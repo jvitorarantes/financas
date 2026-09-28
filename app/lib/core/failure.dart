@@ -109,6 +109,12 @@ AppFailure _authFailure(AuthException e) {
       code: 'email_not_confirmed',
     );
   }
+  if (code == 'signup_disabled' || m.contains('signups not allowed')) {
+    return const AppFailure(
+      'O cadastro está fechado. Peça um acesso a quem administra o app.',
+      code: 'signup_disabled',
+    );
+  }
   if (code == 'user_already_exists' || m.contains('already registered')) {
     return const AppFailure('Já existe uma conta com esse e-mail.', code: 'user_already_exists');
   }

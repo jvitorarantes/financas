@@ -111,8 +111,16 @@ Tabelas: `users`, `accounts`, `transactions`, `categories`, `budgets`,
 | Transcrição do áudio | Groq, plano gratuito (`GROQ_API_KEY`) |
 | Interpretação e análises | Interpretador por regras em português, embutido (sem chave). O Claude é opcional e pago. |
 
-Depois de criar as contas de uso, desligue novos cadastros em
-**Authentication → Sign In / Providers → Allow new users to sign up**.
+**Usuários (até ~20, finanças separadas):** cada conta vê só os próprios dados.
+O e-mail padrão do Supabase só envia para membros da equipe do projeto, então:
+
+- **Criar os acessos sem e-mail:** desligue *Allow new users to sign up*
+  (Authentication → Sign In / Providers) e crie cada pessoa em
+  *Authentication → Users → Add user → Create new user*, marcando
+  *Auto Confirm User*. Cada um entra com o e-mail e a senha que você definir.
+- **Recuperação de senha por e-mail (opcional):** configure um SMTP gratuito
+  (ex.: Brevo, 300 e-mails/dia) em *Project Settings → Authentication → SMTP Settings*.
+  Sem isso, a senha é redefinida por você em *Authentication → Users*.
 
 ## Como rodar
 
