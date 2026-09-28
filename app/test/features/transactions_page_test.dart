@@ -50,7 +50,13 @@ void main() {
     expect(find.text('Previsto · ${Dates.formatDayMonth(nextMonth)}'), findsOneWidget);
     expect(find.byIcon(Icons.repeat_rounded), findsOneWidget);
     expect(find.byKey(const Key('forecast-summary')), findsOneWidget);
-    expect(find.text('-R\$ 1.500,00'), findsNWidgets(2), reason: 'no lançamento e no total previsto');
+    expect(
+      find.descendant(of: find.byKey(const Key('forecast-summary')), matching: find.text('-R\$ 1.500,00')),
+      findsOneWidget,
+      reason: 'total previsto',
+    );
+    // A despesa prevista já entra no total de despesas e no resultado do mês.
+    expect(find.text('-R\$ 1.500,00'), findsNWidgets(4));
   });
 
   testWidgets('meses distantes geram as recorrências antes de listar', (tester) async {
