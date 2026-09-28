@@ -31,3 +31,29 @@ begin
   -- Previsto conta no saldo projetado daquele mês, não no saldo atual.
   assert (public.dashboard_summary(far) ->> 'pending_expense_cents')::bigint >= 150000, 'projetado do mês distante';
 end $$;
+
+-- A cada 3 meses durante 12 meses: 4 lançamentos, nas datas certas.
+do $$
+declare
+  cc uuid := (select id from public.accounts where name = 'Conta corrente');
+  start date := date_trunc('month', public.today_br())::date + 4;  -- dia 5
+  r jsonb;
+begin
+  r := public.create_transaction(jsonb_build_object('idempotency_key', gen_random_uuid(),
+    'type', 'expense', 'amount_cents', 30000, 'description', 'Seguro', 'account_id', cc,
+    'transaction_date', start,
+    'recurring', jsonb_build_object('frequency', 'monthly', 'interval_count', 3,
+                                    'end_date', (start + interval '12 months' - interval '1 day')::date)));
+  perform public.materialize_recurring(public.today_br() + 400);
+  assert (select array_agg(transaction_date order by transaction_date) from public.transactions
+           where recurring_transaction_id = (r ->> 'recurring_id')::uuid)
+         = array[start, (start + interval '3 months')::date, (start + interval '6 months')::date,
+                 (start + interval '9 months')::date], 'trimestral por 12 meses';
+
+  begin
+    perform public.create_transaction(jsonb_build_object('idempotency_key', gen_random_uuid(),
+      'type', 'expense', 'amount_cents', 100, 'description', 'x', 'account_id', cc,
+      'recurring', jsonb_build_object('frequency', 'monthly', 'interval_count', 13)));
+    assert false, 'intervalo acima de 12 deveria falhar';
+  exception when check_violation then null; end;
+end $$;

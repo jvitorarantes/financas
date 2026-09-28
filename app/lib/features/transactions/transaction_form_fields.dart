@@ -330,49 +330,52 @@ class _TransactionFormFieldsState extends State<TransactionFormFields> {
           ],
           if (_repeat == RepeatMode.recurring) ...[
             gap,
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<RecurrenceFrequency>(
-                    isExpanded: true,
-                    initialValue: d.recurrence!.frequency,
-                    decoration: const InputDecoration(labelText: 'Frequência'),
-                    items: [
-                      for (final f in RecurrenceFrequency.values) DropdownMenuItem(value: f, child: Text(f.label)),
-                    ],
-                    onChanged: (f) => _emit(
-                      d.copyWith(
-                        recurrence: RecurrenceDraft(frequency: f!, endDate: d.recurrence?.endDate),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: d.recurrence?.endDate ?? Dates.addMonths(d.date, 12),
-                        firstDate: d.date,
-                        lastDate: DateTime(2100),
-                        helpText: 'Termina em',
-                      );
-                      if (picked != null) {
-                        _emit(
-                          d.copyWith(
-                            recurrence: RecurrenceDraft(frequency: d.recurrence!.frequency, endDate: picked),
-                          ),
-                        );
-                      }
-                    },
-                    child: Text(
-                      d.recurrence?.endDate == null ? 'Sem data final' : 'Até ${Dates.format(d.recurrence!.endDate!)}',
-                    ),
-                  ),
-                ),
+            // Repetir a cada: semana ou 1–12 meses. Valor "w" = semanal.
+            DropdownButtonFormField<String>(
+              key: const Key('field-recurrence-every'),
+              isExpanded: true,
+              initialValue: d.recurrence!.frequency == RecurrenceFrequency.weekly
+                  ? 'w'
+                  : d.recurrence!.frequency == RecurrenceFrequency.yearly
+                  ? '12'
+                  : '${d.recurrence!.intervalCount}',
+              decoration: const InputDecoration(labelText: 'Repetir'),
+              items: [
+                const DropdownMenuItem(value: 'w', child: Text('Toda semana')),
+                const DropdownMenuItem(value: '1', child: Text('Todo mês')),
+                for (var m = 2; m <= RecurrenceDraft.maxMonths; m++)
+                  DropdownMenuItem(value: '$m', child: Text('A cada $m meses')),
               ],
+              onChanged: (v) {
+                final r = d.recurrence!;
+                _emit(
+                  d.copyWith(
+                    recurrence: v == 'w'
+                        ? r.copyWith(frequency: RecurrenceFrequency.weekly, intervalCount: 1)
+                        : r.copyWith(frequency: RecurrenceFrequency.monthly, intervalCount: int.parse(v!)),
+                  ),
+                );
+              },
             ),
+            gap,
+            // Durante: sem fim ou 1–12 meses.
+            DropdownButtonFormField<int>(
+              key: const Key('field-recurrence-duration'),
+              isExpanded: true,
+              initialValue: d.recurrence!.durationMonths ?? 0,
+              decoration: const InputDecoration(labelText: 'Durante'),
+              items: [
+                const DropdownMenuItem(value: 0, child: Text('Sem data para acabar')),
+                for (var m = 1; m <= RecurrenceDraft.maxMonths; m++)
+                  DropdownMenuItem(value: m, child: Text(m == 1 ? '1 mês' : '$m meses')),
+              ],
+              onChanged: (v) {
+                final r = d.recurrence!;
+                _emit(d.copyWith(recurrence: v == 0 ? r.copyWith(clearDuration: true) : r.copyWith(durationMonths: v)));
+              },
+            ),
+            const SizedBox(height: 8),
+            _RecurrencePreview(draft: d),
           ],
           if (widget.errors['repeat'] != null) _ErrorText(widget.errors['repeat']!),
         ],
@@ -415,6 +418,24 @@ class _InstallmentPreview extends StatelessWidget {
       key: const Key('installment-preview'),
       style: const TextStyle(fontWeight: FontWeight.w600),
     );
+  }
+}
+
+class _RecurrencePreview extends StatelessWidget {
+  const _RecurrencePreview({required this.draft});
+  final TransactionDraft draft;
+
+  @override
+  Widget build(BuildContext context) {
+    final r = draft.recurrence!;
+    final dates = r.occurrences(draft.date);
+    final end = r.endFor(draft.date);
+    final shown = dates.take(4).map(Dates.formatDayMonth).join(', ');
+    final text = end == null
+        ? '${r.everyLabel}, sem data para acabar. Próximas: $shown…'
+        : '${r.everyLabel} até ${Dates.format(end)}: ${dates.length} lançamento(s) '
+              '($shown${dates.length > 4 ? '…' : ''}).';
+    return Text(text, key: const Key('recurrence-preview'), style: Theme.of(context).textTheme.bodySmall);
   }
 }
 

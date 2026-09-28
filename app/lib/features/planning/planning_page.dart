@@ -232,7 +232,7 @@ class PlanningPage extends ConsumerWidget {
                                   SwitchListTile(
                                     title: Text(r.description, style: const TextStyle(fontWeight: FontWeight.w600)),
                                     subtitle: Text(
-                                      '${r.type.label} · ${r.frequency.label} · ${Money.format(r.amountCents)}'
+                                      '${r.type.label} · ${r.everyLabel} · ${Money.format(r.amountCents)}'
                                       '${r.endDate != null ? ' · até ${Dates.format(r.endDate!)}' : ''}',
                                     ),
                                     value: r.active,

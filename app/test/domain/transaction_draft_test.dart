@@ -96,6 +96,42 @@ void main() {
       expect(d.validate().keys, contains('repeat'));
     });
 
+    test('a cada N meses, durante N meses', () {
+      final start = DateTime(2026, 10, 10);
+      final d = draft(date: start).copyWith(recurrence: const RecurrenceDraft(intervalCount: 3, durationMonths: 12));
+      expect(d.toPayload()['recurring'], {'frequency': 'monthly', 'interval_count': 3, 'end_date': '2027-10-09'});
+      expect(d.recurrence!.occurrences(start), [
+        DateTime(2026, 10, 10),
+        DateTime(2027, 1, 10),
+        DateTime(2027, 4, 10),
+        DateTime(2027, 7, 10),
+      ]);
+      expect(d.recurrence!.everyLabel, 'A cada 3 meses');
+    });
+
+    test('todo mês durante 6 meses = 6 lançamentos', () {
+      final start = DateTime(2026, 1, 31);
+      const r = RecurrenceDraft(durationMonths: 6);
+      expect(r.occurrences(start).length, 6);
+      expect(r.occurrences(start)[1], DateTime(2026, 2, 28), reason: 'fim de mês ajustado');
+      expect(r.endFor(start), DateTime(2026, 7, 30));
+    });
+
+    test('intervalo e duração fora de 1 a 12 são recusados', () {
+      expect(
+        draft().copyWith(recurrence: const RecurrenceDraft(intervalCount: 13)).validate().keys,
+        contains('repeat'),
+      );
+      expect(
+        draft().copyWith(recurrence: const RecurrenceDraft(durationMonths: 0)).validate().keys,
+        contains('repeat'),
+      );
+      expect(
+        draft().copyWith(recurrence: const RecurrenceDraft(intervalCount: 12, durationMonths: 12)).validate(),
+        isEmpty,
+      );
+    });
+
     test('recorrência vai no payload', () {
       final end = DateTime(2027, 12, 31);
       final p = draft()

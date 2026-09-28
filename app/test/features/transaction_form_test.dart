@@ -139,4 +139,36 @@ void main() {
     expect(saved.recurrence, isNotNull);
     expect(saved.toPayload()['recurring'], {'frequency': 'monthly', 'interval_count': 1});
   });
+
+  testWidgets('recorrência a cada 2 meses durante 6 meses', (tester) async {
+    await pumpForm(tester, 'expense');
+    await tester.enterText(find.byKey(const Key('field-amount')), '9000');
+    await tester.enterText(find.byKey(const Key('field-description')), 'Academia');
+    final recorrente = find.text('Recorrente');
+    await tester.ensureVisible(recorrente);
+    await tester.tap(recorrente);
+    await tester.pumpAndSettle();
+
+    final every = find.byKey(const Key('field-recurrence-every'));
+    await tester.ensureVisible(every);
+    await tester.tap(every);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('A cada 2 meses').last);
+    await tester.pumpAndSettle();
+
+    final duration = find.byKey(const Key('field-recurrence-duration'));
+    await tester.ensureVisible(duration);
+    await tester.tap(duration);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('6 meses').last);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('A cada 2 meses até'), findsOneWidget);
+    expect(find.textContaining('3 lançamento(s)'), findsOneWidget);
+    await tapSave(tester);
+    await tester.pumpAndSettle();
+    final payload = transactions.createdByKey.values.single.toPayload()['recurring'] as Map;
+    expect(payload['interval_count'], 2);
+    expect(payload['end_date'], isNotNull);
+  });
 }

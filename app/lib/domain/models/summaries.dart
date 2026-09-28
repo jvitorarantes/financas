@@ -118,6 +118,13 @@ class RecurringTransaction {
   final bool active;
   final String? categoryName;
 
+  /// "Todo mês", "A cada 3 meses", "Toda semana"…
+  String get everyLabel => switch (frequency) {
+    RecurrenceFrequency.weekly => intervalCount == 1 ? 'Toda semana' : 'A cada $intervalCount semanas',
+    RecurrenceFrequency.yearly => 'Todo ano',
+    RecurrenceFrequency.monthly => intervalCount == 1 ? 'Todo mês' : 'A cada $intervalCount meses',
+  };
+
   factory RecurringTransaction.fromJson(Map<String, dynamic> j) => RecurringTransaction(
     id: j['id'] as String,
     type: TransactionType.tryParse(j['type'] as String?) ?? TransactionType.expense,
