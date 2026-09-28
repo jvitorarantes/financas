@@ -1,0 +1,23 @@
+# Configuração do Supabase CLI (supabase start / supabase db push / functions deploy).
+project_id = "meu-financeiro"
+
+[api]
+schemas = ["public"]
+
+[auth]
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000", "br.com.meufinanceiro://login-callback"]
+enable_signup = true
+
+[auth.email]
+enable_confirmations = true
+
+# As funções exigem usuário logado (JWT verificado pelo gateway + dentro da função).
+[functions.transcribe-audio]
+verify_jwt = true
+
+[functions.extract-transaction]
+verify_jwt = true
+
+[functions.financial-insights]
+verify_jwt = true

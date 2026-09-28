@@ -1,0 +1,9 @@
+{
+  "name": "meu-financeiro-functions",
+  "private": true,
+  "type": "module",
+  "description": "Testes dos módulos das Edge Functions (rodam no Node 22+; as funções rodam no Deno do Supabase).",
+  "scripts": {
+    "test": "node --test tests/*.test.ts"
+  }
+}
