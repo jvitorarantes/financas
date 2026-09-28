@@ -7,6 +7,7 @@ import '../data/repositories/transactions_repository.dart';
 import '../domain/models/account.dart';
 import '../domain/models/category.dart';
 import '../domain/models/summaries.dart';
+import '../domain/finance/reminders.dart';
 import '../domain/models/transaction.dart';
 
 /// Incrementado sempre que uma movimentação muda: todos os dados financeiros
@@ -78,4 +79,14 @@ final budgetStatusProvider = FutureProvider<List<BudgetStatus>>((ref) {
 final recentTransactionsProvider = FutureProvider<List<FinanceTransaction>>((ref) {
   ref.watch(financeRevisionProvider);
   return ref.watch(transactionsRepositoryProvider).recent(limit: 6);
+});
+
+/// Avisos de contas a vencer (7 dias antes) e vencidas, até serem pagas.
+final billRemindersProvider = FutureProvider<List<BillReminder>>((ref) async {
+  ref.watch(financeRevisionProvider);
+  final today = Dates.today();
+  final pending = await ref
+      .watch(transactionsRepositoryProvider)
+      .pending(until: today.add(const Duration(days: reminderWindowDays)));
+  return buildReminders(pending, today: today);
 });

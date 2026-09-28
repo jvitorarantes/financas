@@ -14,6 +14,7 @@ import '../../domain/finance/alerts.dart';
 import '../../domain/finance/budget_rules.dart';
 import '../../domain/models/summaries.dart';
 import '../audio/audio_record_sheet.dart';
+import '../reminders/reminders_widgets.dart';
 import '../transactions/transaction_tile.dart';
 
 class DashboardPage extends ConsumerStatefulWidget {
@@ -85,6 +86,7 @@ class _NarrowLayout extends StatelessWidget {
       children: [
         const _MonthHeader(),
         gap,
+        const RemindersBanner(),
         _BalanceCard(summary: summary),
         gap,
         _IncomeExpenseRow(summary: summary),
@@ -114,6 +116,7 @@ class _WideLayout extends StatelessWidget {
       children: [
         const _MonthHeader(),
         gap,
+        const RemindersBanner(),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -159,17 +162,41 @@ class _MonthHeader extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final month = ref.watch(selectedMonthProvider);
     final notifier = ref.read(selectedMonthProvider.notifier);
-    return Row(
+    final title = Text(
+      'Visão geral',
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+    );
+    final selector = Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Expanded(
-          child: Text(
-            'Visão geral',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-          ),
-        ),
         IconButton(tooltip: 'Mês anterior', onPressed: notifier.previous, icon: const Icon(Icons.chevron_left_rounded)),
         Text(Dates.monthLabel(month), style: const TextStyle(fontWeight: FontWeight.w600)),
         IconButton(tooltip: 'Próximo mês', onPressed: notifier.next, icon: const Icon(Icons.chevron_right_rounded)),
+      ],
+    );
+    // No celular, o seletor de mês fica numa segunda linha para caber o sino.
+    if (MediaQuery.sizeOf(context).width < 520) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(child: title),
+              const NotificationBell(),
+            ],
+          ),
+          Align(alignment: Alignment.centerLeft, child: selector),
+        ],
+      );
+    }
+    return Row(
+      children: [
+        Expanded(child: title),
+        selector,
+        const SizedBox(width: 8),
+        const NotificationBell(),
       ],
     );
   }

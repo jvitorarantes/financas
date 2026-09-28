@@ -149,12 +149,20 @@ class FakeTransactionsRepository implements TransactionsRepository {
 
   @override
   Future<List<FinanceTransaction>> recent({int limit = 5}) async => const [];
+  List<FinanceTransaction> pendingResult = const [];
+  final paidIds = <String>[];
+
   @override
-  Future<List<FinanceTransaction>> pending({required DateTime until}) async => const [];
+  Future<List<FinanceTransaction>> pending({required DateTime until}) async =>
+      pendingResult.where((t) => t.isPending && !t.date.isAfter(until)).toList();
   @override
   Future<void> update(String id, TransactionDraft draft) async {}
   @override
-  Future<void> markPaid(String id, {DateTime? on}) async {}
+  Future<void> markPaid(String id, {DateTime? on}) async {
+    paidIds.add(id);
+    pendingResult = pendingResult.where((t) => t.id != id).toList();
+  }
+
   @override
   Future<void> delete(String id) async {}
   @override
