@@ -22,15 +22,24 @@ class TransactionFilterNotifier extends Notifier<TransactionFilter> {
   }
 
   void update(TransactionFilter f) => state = f;
+
+  /// Anda um mês para frente/trás (a partir do mês do período atual).
+  void shiftMonth(int delta) {
+    final base = Dates.firstOfMonth(state.from ?? Dates.today());
+    final month = DateTime(base.year, base.month + delta);
+    state = state.copyWith(from: month, to: Dates.lastOfMonth(month));
+  }
 }
 
 final transactionFilterProvider = NotifierProvider<TransactionFilterNotifier, TransactionFilter>(
   TransactionFilterNotifier.new,
 );
 
-final transactionListProvider = FutureProvider<List<FinanceTransaction>>((ref) {
+final transactionListProvider = FutureProvider<List<FinanceTransaction>>((ref) async {
   ref.watch(financeRevisionProvider);
-  return ref.watch(transactionsRepositoryProvider).list(ref.watch(transactionFilterProvider), limit: 300);
+  final filter = ref.watch(transactionFilterProvider);
+  if (filter.to != null) await ref.watch(recurringUntilProvider(Dates.lastOfMonth(filter.to!)).future);
+  return ref.watch(transactionsRepositoryProvider).list(filter, limit: 300);
 });
 
 class TransactionsPage extends ConsumerStatefulWidget {
@@ -107,7 +116,24 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Movimentações')),
+      appBar: AppBar(
+        title: const Text('Movimentações'),
+        actions: [
+          IconButton(
+            key: const Key('month-previous'),
+            tooltip: 'Mês anterior',
+            onPressed: () => notifier.shiftMonth(-1),
+            icon: const Icon(Icons.chevron_left_rounded),
+          ),
+          IconButton(
+            key: const Key('month-next'),
+            tooltip: 'Próximo mês',
+            onPressed: () => notifier.shiftMonth(1),
+            icon: const Icon(Icons.chevron_right_rounded),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: ResponsiveCenter(
         maxWidth: 900,
         child: Column(
@@ -194,6 +220,8 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                   final expense = items
                       .where((t) => t.type == TransactionType.expense && !t.isPending)
                       .fold<int>(0, (s, t) => s + t.amountCents);
+                  final forecast = items.where((t) => t.isPending).fold<int>(0, (s, t) => s + t.signedCents);
+                  final forecastCount = items.where((t) => t.isPending).length;
                   // Agrupa por dia.
                   final groups = <DateTime, List<FinanceTransaction>>{};
                   for (final t in items) {
@@ -222,6 +250,23 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                             ),
                           ),
                         ),
+                        if (forecastCount > 0)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Card(
+                              child: ListTile(
+                                key: const Key('forecast-summary'),
+                                leading: const Icon(Icons.event_repeat_rounded),
+                                title: Text('$forecastCount lançamento(s) previsto(s) no período'),
+                                subtitle: const Text('Ainda não pagos/recebidos: não entram nos totais acima.'),
+                                trailing: MoneyText(
+                                  forecast,
+                                  colored: true,
+                                  style: const TextStyle(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                            ),
+                          ),
                         const SizedBox(height: 8),
                         for (final entry in groups.entries) ...[
                           Padding(

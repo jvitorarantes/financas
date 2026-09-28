@@ -32,6 +32,10 @@ abstract final class Dates {
   }
 
   static String format(DateTime d) => _day.format(d);
+
+  /// "10/10"
+  static String formatDayMonth(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}';
   static String formatShort(DateTime d) => _dayShort.format(d);
 
   static String monthLabel(DateTime d) {

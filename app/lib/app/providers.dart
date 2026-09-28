@@ -45,9 +45,24 @@ final categoriesProvider = FutureProvider<List<Category>>((ref) {
   return ref.watch(catalogRepositoryProvider).categories();
 });
 
-final dashboardSummaryProvider = FutureProvider<DashboardSummary>((ref) {
+/// Garante que as recorrências já tenham os lançamentos previstos até o fim
+/// do mês informado (ex.: ao abrir o mês que vem, o aluguel do dia 10 já
+/// aparece como previsto). Só age para meses futuros; o banco limita a ~1 ano.
+final recurringUntilProvider = FutureProvider.family<void, DateTime>((ref, monthEnd) async {
   ref.watch(financeRevisionProvider);
-  return ref.watch(financeRepositoryProvider).summary(ref.watch(selectedMonthProvider));
+  if (!monthEnd.isAfter(Dates.addMonths(Dates.today(), 2))) return;
+  try {
+    await ref.watch(transactionsRepositoryProvider).materializeRecurring(until: monthEnd);
+  } catch (_) {
+    // Não impede a tela de abrir; os lançamentos já existentes continuam visíveis.
+  }
+});
+
+final dashboardSummaryProvider = FutureProvider<DashboardSummary>((ref) async {
+  ref.watch(financeRevisionProvider);
+  final month = ref.watch(selectedMonthProvider);
+  await ref.watch(recurringUntilProvider(Dates.lastOfMonth(month)).future);
+  return ref.watch(financeRepositoryProvider).summary(month);
 });
 
 final spendingByCategoryProvider = FutureProvider<List<CategorySpending>>((ref) {

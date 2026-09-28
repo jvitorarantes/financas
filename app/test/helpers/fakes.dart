@@ -133,8 +133,20 @@ class FakeTransactionsRepository implements TransactionsRepository {
     return CreateTransactionResult(transactionId: 'tx-${draft.idempotencyKey}', created: !existed);
   }
 
+  List<FinanceTransaction> listResult = const [];
+  final listFilters = <TransactionFilter>[];
   @override
-  Future<List<FinanceTransaction>> list(TransactionFilter filter, {int limit = 100, int offset = 0}) async => const [];
+  Future<List<FinanceTransaction>> list(TransactionFilter filter, {int limit = 100, int offset = 0}) async {
+    listFilters.add(filter);
+    return listResult
+        .where(
+          (t) =>
+              (filter.from == null || !t.date.isBefore(filter.from!)) &&
+              (filter.to == null || !t.date.isAfter(filter.to!)),
+        )
+        .toList();
+  }
+
   @override
   Future<List<FinanceTransaction>> recent({int limit = 5}) async => const [];
   @override
@@ -147,8 +159,12 @@ class FakeTransactionsRepository implements TransactionsRepository {
   Future<void> delete(String id) async {}
   @override
   Future<void> deleteInstallmentPlan(String installmentId) async {}
+  final materializedUntil = <DateTime>[];
   @override
-  Future<int> materializeRecurring() async => 0;
+  Future<int> materializeRecurring({DateTime? until}) async {
+    if (until != null) materializedUntil.add(until);
+    return 0;
+  }
 }
 
 class FakeFinanceRepository implements FinanceRepository {

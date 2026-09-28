@@ -69,7 +69,10 @@ abstract interface class TransactionsRepository {
   Future<void> markPaid(String id, {DateTime? on});
   Future<void> delete(String id);
   Future<void> deleteInstallmentPlan(String installmentId);
-  Future<int> materializeRecurring();
+
+  /// Gera as ocorrências previstas das recorrências até [until]
+  /// (padrão: daqui a 2 meses). Idempotente.
+  Future<int> materializeRecurring({DateTime? until});
 }
 
 class SupabaseTransactionsRepository implements TransactionsRepository {
@@ -200,10 +203,10 @@ class SupabaseTransactionsRepository implements TransactionsRepository {
   }
 
   @override
-  Future<int> materializeRecurring() async {
+  Future<int> materializeRecurring({DateTime? until}) async {
     try {
-      final until = Dates.addMonths(Dates.today(), 2);
-      final res = await _db.rpc('materialize_recurring', params: {'p_until': Dates.iso(until)});
+      final limit = until ?? Dates.addMonths(Dates.today(), 2);
+      final res = await _db.rpc('materialize_recurring', params: {'p_until': Dates.iso(limit)});
       return (res as num?)?.toInt() ?? 0;
     } catch (e) {
       throw toFailure(e);

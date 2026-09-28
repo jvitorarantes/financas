@@ -33,6 +33,7 @@ class TransactionTile extends StatelessWidget {
       ],
       if (showDate) Dates.relative(t.date),
     ];
+    final overdue = t.isPending && Dates.dateOnly(t.date).isBefore(Dates.today());
     return ListTile(
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -49,6 +50,10 @@ class TransactionTile extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
+          if (t.recurringTransactionId != null) ...[
+            const SizedBox(width: 6),
+            Icon(Icons.repeat_rounded, size: 14, color: theme.colorScheme.primary, semanticLabel: 'Recorrente'),
+          ],
           if (t.source == TransactionSource.audio) ...[
             const SizedBox(width: 6),
             Icon(Icons.mic_rounded, size: 14, color: theme.colorScheme.primary, semanticLabel: 'Registrado por áudio'),
@@ -72,8 +77,8 @@ class TransactionTile extends StatelessWidget {
               ),
               if (t.isPending)
                 Text(
-                  t.type == TransactionType.income ? 'A receber' : 'A pagar',
-                  style: theme.textTheme.labelSmall?.copyWith(color: colors.warning),
+                  overdue ? 'Vencido · ${Dates.formatDayMonth(t.date)}' : 'Previsto · ${Dates.formatDayMonth(t.date)}',
+                  style: theme.textTheme.labelSmall?.copyWith(color: overdue ? colors.expense : colors.warning),
                 ),
             ],
           ),
