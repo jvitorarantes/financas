@@ -31,12 +31,29 @@ class BudgetPage extends ConsumerWidget {
             onPressed: monthNotifier.previous,
             icon: const Icon(Icons.chevron_left_rounded),
           ),
-          Center(child: Text(Dates.monthLabel(month))),
+          Center(child: Text(Dates.monthLabel(month), overflow: TextOverflow.ellipsis)),
           IconButton(
             tooltip: 'Próximo mês',
             onPressed: monthNotifier.next,
             icon: const Icon(Icons.chevron_right_rounded),
           ),
+          const SizedBox(width: 4),
+          // No celular só o ícone; no computador, com o texto.
+          if (MediaQuery.sizeOf(context).width < 600)
+            IconButton.filledTonal(
+              key: const Key('budget-add'),
+              tooltip: 'Definir limite',
+              onPressed: () => _edit(context, ref, categories: categories, existing: budgets.value ?? const []),
+              icon: const Icon(Icons.add_rounded),
+            )
+          else
+            FilledButton.tonalIcon(
+              key: const Key('budget-add'),
+              onPressed: () => _edit(context, ref, categories: categories, existing: budgets.value ?? const []),
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Definir limite'),
+            ),
+          const SizedBox(width: 12),
         ],
       ),
       body: AsyncView<List<BudgetStatus>>(
@@ -44,10 +61,16 @@ class BudgetPage extends ConsumerWidget {
         onRetry: () => ref.invalidate(budgetStatusProvider),
         data: (list) {
           if (list.isEmpty) {
-            return const EmptyState(
+            return EmptyState(
               icon: Icons.donut_large_rounded,
               title: 'Nenhum orçamento definido',
               message: 'Defina limites mensais por categoria (ex.: Alimentação R\$ 1.000) e acompanhe quanto já usou.',
+              action: FilledButton.icon(
+                key: const Key('budget-add-empty'),
+                onPressed: () => _edit(context, ref, categories: categories, existing: const []),
+                icon: const Icon(Icons.add_rounded),
+                label: const Text('Definir orçamento'),
+              ),
             );
           }
           return ListView(

@@ -6,3 +6,7 @@ node_modules/
 *.log
 supabase/.temp/
 supabase/.branches/
+
+# Assinatura Android (nunca versionar)
+app/android/key.properties
+app/android/app/*.jks
