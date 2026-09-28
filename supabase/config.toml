@@ -12,19 +12,20 @@ enable_signup = true
 [auth.email]
 enable_confirmations = true
 
-# As funções exigem usuário logado (JWT verificado pelo gateway + dentro da função).
+# Cada função confere o usuário logado internamente (auth.getUser), o que
+# funciona com as chaves novas (publishable/JWT assimétrico) e as antigas.
 [functions.transcribe-audio]
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/deno.json"
 
 [functions.extract-transaction]
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/deno.json"
 
 [functions.financial-insights]
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/deno.json"
 
 [functions.admin-users]
-verify_jwt = true
+verify_jwt = false
 import_map = "./functions/deno.json"
