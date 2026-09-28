@@ -348,6 +348,7 @@ select
   a.type,
   a.include_in_balance,
   a.archived,
+  a.initial_balance_cents,
   a.initial_balance_cents
     + coalesce((
         select sum(case
