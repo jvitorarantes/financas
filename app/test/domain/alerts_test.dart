@@ -71,6 +71,27 @@ void main() {
       expect(alerts.map((a) => a.message), contains('Seus gastos estão acima do ritmo esperado para este mês.'));
     });
 
+    test('despesas previstas não disparam o alerta de ritmo', () {
+      // R\$ 2.000 no mês, mas só R\$ 500 pagos até agora: ritmo normal.
+      final s = DashboardSummary(
+        month: DateTime(2026, 9),
+        currentBalanceCents: 100000,
+        monthIncomeCents: 0,
+        monthExpenseCents: 200000,
+        monthExpensePaidCents: 50000,
+        pendingExpenseCents: 150000,
+        pendingIncomeCents: 0,
+        projectedBalanceCents: 100000,
+      );
+      final alerts = buildDashboardAlerts(
+        summary: s,
+        budgets: [budget('Geral', 300000, 200000, categoryId: null)],
+        today: today,
+      );
+      expect(alerts.where((a) => a.kind == 'pace'), isEmpty);
+      expect(s.monthExpensePendingCents, 150000);
+    });
+
     test('ritmo normal não gera alerta', () {
       final alerts = buildDashboardAlerts(
         summary: summary(expense: 100000),
@@ -82,7 +103,7 @@ void main() {
 
     test('contas futuras', () {
       final alerts = buildDashboardAlerts(summary: summary(pending: 80000), budgets: const [], today: today);
-      expect(alerts.single.message, 'Você possui R\$ 800,00 em contas futuras.');
+      expect(alerts.single.message, 'Você tem R\$ 800,00 em contas previstas para este mês.');
     });
 
     test('saldo projetado negativo', () {

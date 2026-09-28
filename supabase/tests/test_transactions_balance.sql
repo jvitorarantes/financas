@@ -65,13 +65,26 @@ begin
 
   s := public.dashboard_summary();
   assert (s ->> 'current_balance_cents')::bigint = 320000 - 4590, 'saldo total: transferência soma zero, futuros fora';
-  assert (s ->> 'month_income_cents')::bigint  = 320000, 'receitas do mês sem transferência nem futura';
-  assert (s ->> 'month_expense_cents')::bigint = 4590,   'despesas do mês sem transferência nem futura';
+  assert (s ->> 'month_income_cents')::bigint  = 320000, 'receitas do mês: só as recebidas';
+  assert (s ->> 'month_expense_paid_cents')::bigint = 4590, 'despesas pagas sem transferência';
   if date_trunc('month', public.today_br()) = date_trunc('month', public.today_br() + 5) then
+    assert (s ->> 'month_expense_cents')::bigint = 4590 + 18000, 'despesas do mês incluem as previstas do mês';
+    assert (s ->> 'month_expense_pending_cents')::bigint = 18000, 'previstas do mês';
     assert (s ->> 'pending_expense_cents')::bigint = 18000, 'contas futuras do mês';
     assert (s ->> 'projected_balance_cents')::bigint = 320000 - 4590 - 18000, 'saldo projetado';
     assert (s ->> 'pending_income_cents')::bigint = 100000, 'receita prevista informada à parte';
+  else
+    assert (s ->> 'month_expense_cents')::bigint = 4590, 'previsão do mês seguinte fica fora';
   end if;
+
+  -- Uma conta prevista em outro mês não entra no alerta deste mês.
+  perform public.create_transaction(jsonb_build_object('idempotency_key', gen_random_uuid(),
+    'type', 'expense', 'amount_cents', 77700, 'description', 'IPVA',
+    'account_id', ids.cc, 'transaction_date', (date_trunc('month', public.today_br()) + interval '2 months')::date));
+  assert (public.dashboard_summary() ->> 'pending_expense_cents')::bigint
+         = (s ->> 'pending_expense_cents')::bigint, 'alerta só do mês';
+  assert (public.dashboard_summary((date_trunc('month', public.today_br()) + interval '2 months')::date)
+            ->> 'month_expense_pending_cents')::bigint = 77700, 'previsto aparece no mês dele';
 
   -- Validações
   begin
@@ -130,4 +143,23 @@ begin
   s := public.dashboard_summary();
   assert (s ->> 'current_balance_cents')::bigint = 320000 - 4590 - 18000, 'conta paga reduz o saldo';
   assert (s ->> 'pending_expense_cents')::bigint = 0, 'nada pendente de despesa';
+end $$;
+
+-- Despesa prevista (pendente) neste mês entra em "Despesas do mês" e no alerta,
+-- mas não no saldo atual.
+do $$
+declare
+  cc uuid := (select id from public.accounts where name = 'Conta corrente');
+  before jsonb := public.dashboard_summary();
+  after jsonb;
+begin
+  perform public.create_transaction(jsonb_build_object('idempotency_key', gen_random_uuid(),
+    'type', 'expense', 'amount_cents', 12345, 'description', 'Internet (prevista)',
+    'account_id', cc, 'transaction_date', public.today_br(), 'status', 'pending'));
+  after := public.dashboard_summary();
+  assert (after ->> 'month_expense_cents')::bigint = (before ->> 'month_expense_cents')::bigint + 12345, 'entra nas despesas do mês';
+  assert (after ->> 'month_expense_paid_cents')::bigint = (before ->> 'month_expense_paid_cents')::bigint, 'não é paga';
+  assert (after ->> 'pending_expense_cents')::bigint = (before ->> 'pending_expense_cents')::bigint + 12345, 'entra no alerta';
+  assert (after ->> 'current_balance_cents')::bigint = (before ->> 'current_balance_cents')::bigint, 'saldo atual não muda';
+  assert (after ->> 'projected_balance_cents')::bigint = (before ->> 'projected_balance_cents')::bigint - 12345, 'projetado desconta';
 end $$;

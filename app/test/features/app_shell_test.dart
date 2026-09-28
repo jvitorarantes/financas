@@ -80,7 +80,8 @@ void main() {
         month: DateTime(2026, 9),
         currentBalanceCents: 315410,
         monthIncomeCents: 320000,
-        monthExpenseCents: 4590,
+        monthExpenseCents: 84590,
+        monthExpensePaidCents: 4590,
         pendingExpenseCents: 80000,
         pendingIncomeCents: 100000,
         projectedBalanceCents: 235410,
@@ -89,8 +90,9 @@ void main() {
     expect(find.text('R\$ 3.154,10'), findsWidgets);
     expect(find.text('R\$ 2.354,10'), findsWidgets);
     expect(find.text('R\$ 3.200,00'), findsOneWidget);
-    expect(find.text('R\$ 45,90'), findsOneWidget);
-    expect(find.text('Você possui R\$ 800,00 em contas futuras.'), findsOneWidget);
+    expect(find.text('R\$ 845,90'), findsOneWidget, reason: 'despesas do mês incluem as previstas');
+    expect(find.text('R\$ 45,90 pagos · R\$ 800,00 previstos'), findsOneWidget);
+    expect(find.text('Você tem R\$ 800,00 em contas previstas para este mês.'), findsOneWidget);
     expect(find.text('Não inclui R\$ 1.000,00 a receber.'), findsOneWidget);
   });
 }

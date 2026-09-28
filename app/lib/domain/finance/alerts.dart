@@ -58,7 +58,10 @@ List<FinancialAlert> buildDashboardAlerts({
       final days = Dates.daysInMonth(today);
       final expected = (reference * today.day / days).round();
       // Pequena tolerância (10%) e só depois dos primeiros dias do mês.
-      if (today.day >= 5 && summary.monthExpenseCents > expected * 1.1 && summary.monthExpenseCents < reference) {
+      // Ritmo considera só o que já foi pago (as previstas ainda não aconteceram).
+      if (today.day >= 5 &&
+          summary.monthExpensePaidCents > expected * 1.1 &&
+          summary.monthExpensePaidCents < reference) {
         alerts.add(
           const FinancialAlert(
             'Seus gastos estão acima do ritmo esperado para este mês.',
@@ -70,11 +73,11 @@ List<FinancialAlert> buildDashboardAlerts({
     }
   }
 
-  // 3. Contas futuras já cadastradas.
+  // 3. Contas previstas para este mês (só as do mês).
   if (summary.pendingExpenseCents > 0) {
     alerts.add(
       FinancialAlert(
-        'Você possui ${Money.format(summary.pendingExpenseCents)} em contas futuras.',
+        'Você tem ${Money.format(summary.pendingExpenseCents)} em contas previstas para este mês.',
         AlertSeverity.info,
         kind: 'pending',
       ),

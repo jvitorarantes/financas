@@ -260,6 +260,9 @@ class _IncomeExpenseRow extends StatelessWidget {
             cents: summary.monthIncomeCents,
             icon: Icons.arrow_downward_rounded,
             color: colors.income,
+            detail: summary.monthIncomePendingCents > 0
+                ? '+ ${Money.format(summary.monthIncomePendingCents)} previstos'
+                : null,
           ),
         ),
         const SizedBox(width: 12),
@@ -269,6 +272,10 @@ class _IncomeExpenseRow extends StatelessWidget {
             cents: summary.monthExpenseCents,
             icon: Icons.arrow_upward_rounded,
             color: colors.expense,
+            detail: summary.monthExpensePendingCents > 0
+                ? '${Money.format(summary.monthExpensePaidCents)} pagos · '
+                      '${Money.format(summary.monthExpensePendingCents)} previstos'
+                : null,
           ),
         ),
       ],
@@ -277,8 +284,9 @@ class _IncomeExpenseRow extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.label, required this.cents, required this.icon, required this.color});
+  const _StatCard({required this.label, required this.cents, required this.icon, required this.color, this.detail});
   final String label;
+  final String? detail;
   final int cents;
   final IconData icon;
   final Color color;
@@ -304,6 +312,10 @@ class _StatCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: MoneyText(cents, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800)),
             ),
+            if (detail != null) ...[
+              const SizedBox(height: 4),
+              Text(detail!, style: Theme.of(context).textTheme.labelSmall, maxLines: 2),
+            ],
           ],
         ),
       ),

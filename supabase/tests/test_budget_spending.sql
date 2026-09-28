@@ -21,7 +21,7 @@ begin
     'type', 'expense', 'amount_cents', 82000, 'description', 'Mercado', 'category_id', alim, 'account_id', cc));
   perform public.create_transaction(jsonb_build_object('idempotency_key', gen_random_uuid(),
     'type', 'expense', 'amount_cents', 15000, 'description', 'Cinema', 'category_id', lazer, 'account_id', cc));
-  -- despesa futura não conta no orçamento usado
+  -- despesa prevista em outro mês não conta no orçamento deste mês
   perform public.create_transaction(jsonb_build_object('idempotency_key', gen_random_uuid(),
     'type', 'expense', 'amount_cents', 99900, 'description', 'Show', 'category_id', lazer, 'account_id', cc,
     'transaction_date', public.today_br() + 40));
@@ -32,6 +32,17 @@ begin
   assert b.limit_cents = 60000 and b.spent_cents = 15000, 'override do mês vale';
   select * into b from public.budget_status() where category_id is null;
   assert b.limit_cents = 300000 and b.spent_cents = 97000, 'orçamento geral';
+
+  -- prevista deste mês conta no orçamento e no gráfico
+  if date_trunc('month', public.today_br()) = date_trunc('month', public.today_br() + 2) then
+    perform public.create_transaction(jsonb_build_object('idempotency_key', gen_random_uuid(),
+      'type', 'expense', 'amount_cents', 5000, 'description', 'Pizza prevista', 'category_id', alim, 'account_id', cc,
+      'transaction_date', public.today_br() + 2));
+    select * into b from public.budget_status() where category_id = alim;
+    assert b.spent_cents = 87000, 'previsto do mês entra no orçamento';
+    assert (select total_cents from public.spending_by_category() where category_id = alim) = 87000, 'e no gráfico';
+    delete from public.transactions where description = 'Pizza prevista';
+  end if;
   assert (select count(*) from public.budget_status()) = 3, 'um por categoria';
 
   assert (select total_cents from public.spending_by_category() where category_id = alim) = 82000, 'gasto alimentação';

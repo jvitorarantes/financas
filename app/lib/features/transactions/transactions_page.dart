@@ -218,7 +218,7 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                       .where((t) => t.type == TransactionType.income && !t.isPending)
                       .fold<int>(0, (s, t) => s + t.amountCents);
                   final expense = items
-                      .where((t) => t.type == TransactionType.expense && !t.isPending)
+                      .where((t) => t.type == TransactionType.expense) // inclui as previstas do mês
                       .fold<int>(0, (s, t) => s + t.amountCents);
                   final forecast = items.where((t) => t.isPending).fold<int>(0, (s, t) => s + t.signedCents);
                   final forecastCount = items.where((t) => t.isPending).length;
@@ -258,7 +258,9 @@ class _TransactionsPageState extends ConsumerState<TransactionsPage> {
                                 key: const Key('forecast-summary'),
                                 leading: const Icon(Icons.event_repeat_rounded),
                                 title: Text('$forecastCount lançamento(s) previsto(s) no período'),
-                                subtitle: const Text('Ainda não pagos/recebidos: não entram nos totais acima.'),
+                                subtitle: const Text(
+                                  'Despesas previstas já entram no total de despesas; receitas só quando recebidas.',
+                                ),
                                 trailing: MoneyText(
                                   forecast,
                                   colored: true,

@@ -7,15 +7,24 @@ class DashboardSummary {
     required this.currentBalanceCents,
     required this.monthIncomeCents,
     required this.monthExpenseCents,
+    int? monthExpensePaidCents,
+    this.monthIncomePendingCents = 0,
     required this.pendingExpenseCents,
     required this.pendingIncomeCents,
     required this.projectedBalanceCents,
-  });
+  }) : monthExpensePaidCents = monthExpensePaidCents ?? monthExpenseCents;
+
+  /// Despesas previstas (ainda não pagas) do mês.
+  int get monthExpensePendingCents => monthExpenseCents - monthExpensePaidCents;
 
   final DateTime month;
   final int currentBalanceCents;
   final int monthIncomeCents;
   final int monthExpenseCents;
+
+  /// Despesas do mês já pagas (o restante de [monthExpenseCents] é previsto).
+  final int monthExpensePaidCents;
+  final int monthIncomePendingCents;
   final int pendingExpenseCents;
   final int pendingIncomeCents;
   final int projectedBalanceCents;
@@ -27,6 +36,8 @@ class DashboardSummary {
       currentBalanceCents: c('current_balance_cents'),
       monthIncomeCents: c('month_income_cents'),
       monthExpenseCents: c('month_expense_cents'),
+      monthExpensePaidCents: j.containsKey('month_expense_paid_cents') ? c('month_expense_paid_cents') : null,
+      monthIncomePendingCents: c('month_income_pending_cents'),
       pendingExpenseCents: c('pending_expense_cents'),
       pendingIncomeCents: c('pending_income_cents'),
       projectedBalanceCents: c('projected_balance_cents'),
