@@ -1,4 +1,4 @@
-# Meu Financeiro
+# Sniper Finanças
 
 Aplicativo de finanças pessoais para **web e celular**, com registro de
 movimentações **por voz**: toque no microfone, diga "Gastei 85 reais de

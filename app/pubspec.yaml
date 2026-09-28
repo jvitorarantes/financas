@@ -1,5 +1,5 @@
 name: meu_financeiro
-description: "Meu Financeiro — finanças pessoais com registro por voz (web e mobile)."
+description: "Sniper Finanças — finanças pessoais com registro por voz (web e mobile)."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

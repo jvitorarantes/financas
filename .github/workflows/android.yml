@@ -1,6 +1,6 @@
 name: App Android (APK)
 
-# Gera o APK do Meu Financeiro e publica em Releases:
+# Gera o APK do Sniper Finanças e publica em Releases:
 #   https://github.com/<usuario>/financas/releases/latest
 # Roda quando o app muda na main, ou manualmente em Actions → Run workflow.
 #
@@ -56,13 +56,13 @@ jobs:
           fi
       - run: flutter pub get
       - run: flutter build apk --release --build-number=${{ github.run_number }}
-      - run: cp build/app/outputs/flutter-apk/app-release.apk ../meu-financeiro.apk
+      - run: cp build/app/outputs/flutter-apk/app-release.apk ../sniper-financas.apk
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: android-${{ github.run_number }}
-          name: Meu Financeiro para Android (versão ${{ github.run_number }})
+          name: Sniper Finanças para Android (versão ${{ github.run_number }})
           make_latest: true
           body: |
-            Para instalar no Android: baixe **meu-financeiro.apk** pelo celular, abra o arquivo e permita
+            Para instalar no Android: baixe **sniper-financas.apk** pelo celular, abra o arquivo e permita
             "instalar apps desta fonte" quando o Android pedir.
-          files: meu-financeiro.apk
+          files: sniper-financas.apk

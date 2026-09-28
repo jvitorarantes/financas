@@ -1,4 +1,4 @@
-# Meu Financeiro — app (Flutter)
+# Sniper Finanças — app (Flutter)
 
 Veja o [README principal](../README.md) para a arquitetura, a configuração do
 Supabase e como rodar o projeto.

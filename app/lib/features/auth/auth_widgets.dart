@@ -54,7 +54,7 @@ class AppLogo extends StatelessWidget {
         const SizedBox(width: 12),
         Flexible(
           child: Text(
-            'Meu Financeiro',
+            'Sniper Finanças',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),

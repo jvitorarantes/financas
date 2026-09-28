@@ -225,7 +225,7 @@ class AdminPage extends ConsumerWidget {
     required String email,
     required String password,
   }) {
-    final text = 'Acesso ao Meu Financeiro\nE-mail: $email\nSenha: $password';
+    final text = 'Acesso ao Sniper Finanças\nE-mail: $email\nSenha: $password';
     return showDialog<void>(
       context: context,
       builder: (c) => AlertDialog(
