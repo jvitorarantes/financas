@@ -18,6 +18,7 @@ import '../features/dashboard/dashboard_page.dart';
 import '../features/goals/goals_page.dart';
 import '../features/insights/insights_page.dart';
 import '../features/planning/planning_page.dart';
+import '../features/recurring/recurring_page.dart';
 import '../features/settings/settings_page.dart';
 import '../features/shell/app_shell.dart';
 import '../features/transactions/transaction_form_page.dart';
@@ -100,6 +101,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/planning',
             pageBuilder: (_, _) => const NoTransitionPage(child: PlanningPage()),
+          ),
+          GoRoute(
+            path: '/recurring',
+            pageBuilder: (_, _) => const NoTransitionPage(child: RecurringPage()),
           ),
           GoRoute(
             path: '/insights',

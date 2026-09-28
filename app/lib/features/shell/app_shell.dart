@@ -27,6 +27,7 @@ const _baseDestinations = [
   _Destination('/transactions', 'Movimentações', Icons.receipt_long_outlined, Icons.receipt_long_rounded),
   _Destination('/budget', 'Orçamento', Icons.donut_large_outlined, Icons.donut_large_rounded),
   _Destination('/planning', 'Planejamento', Icons.event_note_outlined, Icons.event_note_rounded),
+  _Destination('/recurring', 'Recorrentes', Icons.repeat_rounded, Icons.repeat_on_rounded),
   _Destination('/insights', 'Análises', Icons.insights_outlined, Icons.insights_rounded),
   _Destination('/goals', 'Metas', Icons.flag_outlined, Icons.flag_rounded),
   _Destination('/settings', 'Configurações', Icons.settings_outlined, Icons.settings_rounded),

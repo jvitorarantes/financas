@@ -116,6 +116,12 @@ class RecurringTransaction {
     this.endDate,
     this.active = true,
     this.categoryName,
+    this.categoryId,
+    this.categoryIcon,
+    this.categoryColor,
+    this.accountId,
+    this.accountName,
+    this.paymentMethod,
   });
 
   final String id;
@@ -128,6 +134,29 @@ class RecurringTransaction {
   final DateTime? endDate;
   final bool active;
   final String? categoryName;
+  final String? categoryId;
+  final String? categoryIcon;
+  final String? categoryColor;
+  final String? accountId;
+  final String? accountName;
+  final PaymentMethod? paymentMethod;
+
+  /// Data da n-ésima ocorrência (mesma regra do banco: sempre a partir do início).
+  DateTime occurrence(int n) => switch (frequency) {
+    RecurrenceFrequency.weekly => startDate.add(Duration(days: 7 * intervalCount * n)),
+    RecurrenceFrequency.yearly => Dates.addMonths(startDate, 12 * intervalCount * n),
+    RecurrenceFrequency.monthly => Dates.addMonths(startDate, intervalCount * n),
+  };
+
+  /// Próxima ocorrência a partir de [from] (null se já terminou).
+  DateTime? nextOccurrence(DateTime from) {
+    for (var n = 0; n < 2000; n++) {
+      final d = occurrence(n);
+      if (endDate != null && d.isAfter(endDate!)) return null;
+      if (!d.isBefore(Dates.dateOnly(from))) return d;
+    }
+    return null;
+  }
 
   /// "Todo mês", "A cada 3 meses", "Toda semana"…
   String get everyLabel => switch (frequency) {
@@ -147,6 +176,12 @@ class RecurringTransaction {
     endDate: j['end_date'] == null ? null : Dates.parseIso(j['end_date'] as String),
     active: j['active'] as bool? ?? true,
     categoryName: (j['category'] as Map<String, dynamic>?)?['name'] as String?,
+    categoryIcon: (j['category'] as Map<String, dynamic>?)?['icon'] as String?,
+    categoryColor: (j['category'] as Map<String, dynamic>?)?['color'] as String?,
+    categoryId: j['category_id'] as String?,
+    accountId: j['account_id'] as String?,
+    accountName: (j['account'] as Map<String, dynamic>?)?['name'] as String?,
+    paymentMethod: PaymentMethod.tryParse(j['payment_method'] as String?),
   );
 }
 

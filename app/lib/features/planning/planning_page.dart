@@ -5,24 +5,19 @@ import 'package:go_router/go_router.dart';
 import '../../app/providers.dart';
 import '../../app/theme.dart';
 import '../../core/dates.dart';
-import '../../core/money.dart';
 import '../../core/widgets/common.dart';
 import '../../data/repositories/finance_repository.dart';
 import '../../data/repositories/transactions_repository.dart';
 import '../../domain/models/enums.dart';
 import '../../domain/models/summaries.dart';
 import '../../domain/models/transaction.dart';
+import '../recurring/recurring_page.dart';
 import '../transactions/transaction_tile.dart';
 
 final pendingTransactionsProvider = FutureProvider<List<FinanceTransaction>>((ref) {
   ref.watch(financeRevisionProvider);
   final until = Dates.lastOfMonth(Dates.addMonths(Dates.today(), 3));
   return ref.watch(transactionsRepositoryProvider).pending(until: until);
-});
-
-final recurringProvider = FutureProvider<List<RecurringTransaction>>((ref) {
-  ref.watch(financeRevisionProvider);
-  return ref.watch(financeRepositoryProvider).recurring();
 });
 
 final currentMonthSummaryProvider = FutureProvider<DashboardSummary>((ref) {
@@ -208,57 +203,20 @@ class PlanningPage extends ConsumerWidget {
                     },
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    'Recorrências',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 8),
-                  AsyncView<List<RecurringTransaction>>(
-                    value: recurring,
-                    onRetry: () => ref.invalidate(recurringProvider),
-                    data: (items) => items.isEmpty
-                        ? const Card(
-                            child: Padding(
-                              padding: EdgeInsets.all(20),
-                              child: Text(
-                                'Nenhuma receita ou despesa recorrente. Marque "Recorrente" ao registrar um lançamento.',
-                              ),
-                            ),
-                          )
-                        : Card(
-                            child: Column(
-                              children: [
-                                for (final r in items)
-                                  SwitchListTile(
-                                    title: Text(r.description, style: const TextStyle(fontWeight: FontWeight.w600)),
-                                    subtitle: Text(
-                                      '${r.type.label} · ${r.everyLabel} · ${Money.format(r.amountCents)}'
-                                      '${r.endDate != null ? ' · até ${Dates.format(r.endDate!)}' : ''}',
-                                    ),
-                                    value: r.active,
-                                    onChanged: (v) async {
-                                      if (!v) {
-                                        final ok = await confirmDialog(
-                                          context,
-                                          title: 'Encerrar recorrência',
-                                          message:
-                                              'As próximas ocorrências pendentes de "${r.description}" serão removidas.',
-                                          confirmLabel: 'Encerrar',
-                                        );
-                                        if (!ok) return;
-                                      }
-                                      try {
-                                        await ref.read(financeRepositoryProvider).setRecurringActive(r.id, v);
-                                        if (v) await ref.read(transactionsRepositoryProvider).materializeRecurring();
-                                        ref.read(financeRevisionProvider.notifier).bump();
-                                      } catch (e) {
-                                        if (context.mounted) showFailure(context, e);
-                                      }
-                                    },
-                                  ),
-                              ],
-                            ),
-                          ),
+                  Card(
+                    child: ListTile(
+                      key: const Key('planning-recurring-link'),
+                      leading: const Icon(Icons.repeat_rounded),
+                      title: const Text('Recorrentes', style: TextStyle(fontWeight: FontWeight.w700)),
+                      subtitle: Text(
+                        (recurring.value ?? const <RecurringTransaction>[]).where((r) => r.active).isEmpty
+                            ? 'Veja, edite ou exclua receitas e despesas recorrentes.'
+                            : '${(recurring.value ?? const []).where((r) => r.active).length} ativa(s). '
+                                  'Toque para editar ou excluir.',
+                      ),
+                      trailing: const Icon(Icons.chevron_right_rounded),
+                      onTap: () => context.go('/recurring'),
+                    ),
                   ),
                 ],
               ),

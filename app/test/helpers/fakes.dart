@@ -188,9 +188,20 @@ class FakeFinanceRepository implements FinanceRepository {
   @override
   Future<void> deleteBudget(String budgetId) async {}
   @override
-  Future<List<RecurringTransaction>> recurring() async => const [];
+  Future<List<RecurringTransaction>> recurring() async => [...recurringList];
+  List<RecurringTransaction> recurringList = [];
+  final recurringCalls = <String>[];
   @override
-  Future<void> setRecurringActive(String id, bool active) async {}
+  Future<void> setRecurringActive(String id, bool active) async => recurringCalls.add('active:$id:$active');
+  @override
+  Future<void> updateRecurring(String id, Map<String, dynamic> changes) async =>
+      recurringCalls.add('update:$id:${changes.entries.map((e) => '${e.key}=${e.value}').join(',')}');
+  @override
+  Future<void> deleteRecurring(String id) async {
+    recurringCalls.add('delete:$id');
+    recurringList = recurringList.where((r) => r.id != id).toList();
+  }
+
   @override
   Future<List<FinancialGoal>> goals() async => const [];
   @override

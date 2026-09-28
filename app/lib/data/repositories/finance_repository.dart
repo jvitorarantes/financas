@@ -15,6 +15,12 @@ abstract interface class FinanceRepository {
   Future<void> deleteBudget(String budgetId);
   Future<List<RecurringTransaction>> recurring();
   Future<void> setRecurringActive(String id, bool active);
+
+  /// Atualiza o modelo e refaz os previstos de hoje em diante.
+  Future<void> updateRecurring(String id, Map<String, dynamic> changes);
+
+  /// Exclui o modelo e os previstos; o histórico pago é mantido.
+  Future<void> deleteRecurring(String id);
   Future<List<FinancialGoal>> goals();
   Future<void> saveGoal({String? id, required String name, required int targetCents, DateTime? targetDate});
   Future<void> setGoalAmount(String id, int currentCents);
@@ -101,6 +107,15 @@ class SupabaseFinanceRepository implements FinanceRepository {
       }
     });
   }
+
+  @override
+  Future<void> updateRecurring(String id, Map<String, dynamic> changes) => _guard(
+    () => _db.rpc('update_recurring', params: {'p_id': id, 'payload': changes}),
+    fallback: AppFailure.saveFailed,
+  );
+
+  @override
+  Future<void> deleteRecurring(String id) => _guard(() => _db.rpc('delete_recurring', params: {'p_id': id}));
 
   @override
   Future<List<FinancialGoal>> goals() => _guard(() async {
