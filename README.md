@@ -7,6 +7,12 @@ gasolina hoje no cartão", confira os dados e confirme.
 Nada é salvo sem a confirmação do usuário, e o app funciona normalmente para
 quem prefere registrar tudo à mão.
 
+## Telas
+
+![Telas no celular](docs/screenshots/celular.png)
+
+![Dashboard no desktop](docs/screenshots/desktop-dashboard.png)
+
 ## Arquitetura
 
 ```
