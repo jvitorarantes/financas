@@ -10,6 +10,7 @@ import '../../data/repositories/catalog_repository.dart';
 import '../../domain/models/account.dart';
 import '../../domain/models/category.dart';
 import '../../domain/models/enums.dart';
+import 'update_tile.dart';
 
 final profileNameProvider = FutureProvider<String?>((ref) => ref.watch(catalogRepositoryProvider).profileName());
 
@@ -140,6 +141,7 @@ class SettingsPage extends ConsumerWidget {
                           'apenas a transcrição fica registrada junto do lançamento.',
                         ),
                       ),
+                      const UpdateTile(),
                       ListTile(
                         key: const Key('change-password'),
                         leading: const Icon(Icons.password_rounded),

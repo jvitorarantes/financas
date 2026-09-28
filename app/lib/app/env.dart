@@ -18,5 +18,8 @@ abstract final class Env {
     defaultValue: 'br.com.meufinanceiro://login-callback',
   );
 
+  /// Repositório onde o APK é publicado (Releases).
+  static const releasesRepo = String.fromEnvironment('RELEASES_REPO', defaultValue: 'jvitorarantes/financas');
+
   static bool get isConfigured => supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty;
 }

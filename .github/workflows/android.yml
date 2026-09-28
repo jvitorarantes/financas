@@ -4,11 +4,10 @@ name: App Android (APK)
 #   https://github.com/<usuario>/financas/releases/latest
 # Roda quando o app muda na main, ou manualmente em Actions → Run workflow.
 #
-# Opcional (recomendado): assinatura fixa, para instalar atualizações por cima
-# sem desinstalar. Secrets: ANDROID_KEYSTORE_BASE64, ANDROID_KEYSTORE_PASSWORD,
-# ANDROID_KEY_ALIAS e ANDROID_KEY_PASSWORD. Sem eles, cada APK sai com uma
-# assinatura diferente e é preciso desinstalar antes de instalar o novo (os
-# dados ficam na nuvem, nada se perde).
+# Assinatura fixa (para instalar atualizações por cima, sem desinstalar):
+# a chave fica em app/android/keys/sniper-release.p12 (protegida por senha) e
+# a senha no secret ANDROID_KEYSTORE_PASSWORD. Sem o secret, o APK sai com a
+# chave de depuração (e aí é preciso desinstalar antes de atualizar).
 on:
   push:
     branches: [main]
@@ -39,20 +38,16 @@ jobs:
           channel: stable
           flutter-version: 3.47.5
           cache: true
-      - name: Assinatura fixa (se configurada)
+      - name: Assinatura fixa
         env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            echo "$KEYSTORE_BASE64" | base64 -d > android/app/upload.jks
-            printf 'storeFile=upload.jks\nstorePassword=%s\nkeyAlias=%s\nkeyPassword=%s\n' \
-              "$KEYSTORE_PASSWORD" "$KEY_ALIAS" "$KEY_PASSWORD" > android/key.properties
-            echo "Usando assinatura fixa."
+          if [ -n "$KEYSTORE_PASSWORD" ]; then
+            printf 'storeFile=../keys/sniper-release.p12\nstorePassword=%s\nkeyAlias=sniper\nkeyPassword=%s\n' \
+              "$KEYSTORE_PASSWORD" "$KEYSTORE_PASSWORD" > android/key.properties
+            echo "Usando a assinatura fixa do Sniper Finanças."
           else
-            echo "Sem assinatura fixa: usando a chave de depuração."
+            echo "::warning::Secret ANDROID_KEYSTORE_PASSWORD ausente: APK com chave de depuração (não atualiza por cima)."
           fi
       - run: flutter pub get
       - run: flutter build apk --release --build-number=${{ github.run_number }}
@@ -65,4 +60,6 @@ jobs:
           body: |
             Para instalar no Android: baixe **sniper-financas.apk** pelo celular, abra o arquivo e permita
             "instalar apps desta fonte" quando o Android pedir.
+
+            Já tem o app? Use **Configurações → Atualizar aplicativo**, ou instale este APK por cima.
           files: sniper-financas.apk
